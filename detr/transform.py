@@ -230,6 +230,7 @@ class RandomSelect:
 
         return self.transform2(img, target)
 
+
 def train_transform():
     min_sizes = (480, 512, 544, 576, 608)
     transforms = [
@@ -246,6 +247,7 @@ def train_transform():
     ]
     return Compose(transforms)
 
+
 def valid_transform():
     min_sizes = (480, 512, 544, 576, 608)
     transforms = [
@@ -254,6 +256,7 @@ def valid_transform():
         Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
     ]
     return Compose(transforms)
+
 
 def collate_func(batch: Sequence[Tuple[Union[torch.Tensor, dict]]]):
     max_height = 0

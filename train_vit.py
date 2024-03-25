@@ -28,6 +28,7 @@ class Config:
         self.num_samples = 200
         self.num_classes = 10
 
+
 def evaluate(data_loader: DataLoader, model: nn.Module, loss_func: Callable):
     model.eval()
     losses = []
@@ -42,6 +43,7 @@ def evaluate(data_loader: DataLoader, model: nn.Module, loss_func: Callable):
     loss = torch.cat(losses).mean()
     accuracy = torch.cat(preds).float().mean()
     return loss, accuracy
+
 
 def train_eval():
     config = Config()
@@ -91,6 +93,7 @@ def train_eval():
 
     test_loss, test_accuracy = evaluate(test_loader, model_best, loss_func)
     print(f'テスト : loss = {test_loss:.3f}, 'f'accuracy = {test_accuracy:.3f}')
+    
     
 if __name__ == "__main__":
     train_eval()

@@ -2,6 +2,7 @@ import copy
 import torch
 from torch import nn 
 
+
 class SelfAttention(nn.Module):
     def __init__(self, dim_hidden: int, num_heads: int, qkv_bias: bool=False):
         super().__init__()
@@ -36,6 +37,7 @@ class SelfAttention(nn.Module):
         out = self.proj_out(out) # [バッチサイズ，特徴量数，特徴量次元]
         return out
     
+
 class FNN(nn.Module):
     def __init__(self, dim_hidden: int, dim_feedforward: int):
         super().__init__()
@@ -49,6 +51,7 @@ class FNN(nn.Module):
         x = self.linear2(x)
         return x
     
+
 class TransformerEncoderLayer(nn.Module):
     def __init__(self, dim_hidden: int, num_heads: int, dim_feedforward: int):
         super().__init__()
@@ -64,6 +67,7 @@ class TransformerEncoderLayer(nn.Module):
         x = self.fnn(x) + x 
         return x
     
+
 class VisionTransformer(nn.Module):
     def __init__(self, num_classes: int, img_size: int, patch_size: int, dim_hidden: int, 
                  num_heads: int, dim_feedforward: int, num_layers: int):

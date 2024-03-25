@@ -11,6 +11,7 @@ def generate_subset(dataset: Dataset, ratio: float, random_seed: int=0):
     indices1, indices2 = indices[:size], indices[size:]
     return indices1, indices2 
 
+
 def get_dataset_statistics(dataset: Dataset):
     data = []
     for i in range(len(dataset)):

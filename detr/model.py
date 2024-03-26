@@ -110,6 +110,7 @@ class ResNet18(nn.Module):
 
         return c3, c4, c5
     
+
 class PositionalEncoding:
     '''
     位置エンコーディング生成クラス
@@ -169,6 +170,7 @@ class PositionalEncoding:
 
         return encoding
     
+
 class TransformerEncoderLayer(nn.Module):
     '''
     Transformerエンコーダ層
@@ -212,11 +214,8 @@ class TransformerEncoderLayer(nn.Module):
         # アテンションの計算に位置の情報が使われるようにする
         q = k = x + pos_encoding
 
-        # self_attenionにはクエリ、キー、バリューの順番に入力
-        # key_padding_maskにmaskを渡すことでマスクが真の値を持つ領域の
-        # キーは使われなくなり、特徴収集の対象から外れる
-        # MutltiheadAttentionクラスは特徴収集結果とアテンションの値の
-        # 2つの結果を返すが、特徴収集結果のみを使うので[0]とする
+        # key_padding_maskにmaskを渡すことでマスクが真の値を持つ領域のキーは使われなくなり、特徴収集の対象から外れる
+        # MutltiheadAttentionクラスは特徴収集結果とアテンションの値の2つの結果を返すが、特徴収集結果のみを使うので[0]とする
         x2 = self.self_attention(q, k, x, key_padding_mask=mask)[0]
         x = x + self.dropout1(x2)
         x = self.norm1(x)
@@ -226,6 +225,7 @@ class TransformerEncoderLayer(nn.Module):
         x = self.norm2(x)
 
         return x
+
 
 class TransformerDecoderLayer(nn.Module):
     '''
@@ -295,6 +295,7 @@ class TransformerDecoderLayer(nn.Module):
 
         return h
     
+
 class Transformer(nn.Module):
     '''
     エンコーダ層とデコーダ層をまとめるTransformer
@@ -347,13 +348,11 @@ class Transformer(nn.Module):
         ''' 入力をTransformerに入力するための整形 '''
         
         # 特徴マップ:
-        # [バッチサイス、チャネル数、高さ、幅]
-        # -> [高さ * 幅、バッチサイズ、チャネル数]
+        # [バッチサイス、チャネル数、高さ、幅] -> [高さ * 幅、バッチサイズ、チャネル数]
         x = x.flatten(2).permute(2, 0, 1)
         
         # 位置エンコーディング:
-        # [バッチサイス、チャネル数、高さ、幅]
-        # -> [高さ*幅、バッチサイズ、チャネル数]
+        # [バッチサイス、チャネル数、高さ、幅] -> [高さ*幅、バッチサイズ、チャネル数]
         pos_encoding = pos_encoding.flatten(2).permute(2, 0, 1)
         
         # マスク:
@@ -361,18 +360,14 @@ class Transformer(nn.Module):
         mask = mask.flatten(1)
         
         # 物体クエリ埋め込み:
-        #[クエリ数、チャネル数]
-        # -> [クエリ数、バッチサイズ、チャネル数]
+        #[クエリ数、チャネル数] -> [クエリ数、バッチサイズ、チャネル数]
         query_embed = query_embed.unsqueeze(1).expand(-1, bs, -1)
 
         ''''''''''''''''''''''''''''''''''''''''''''
 
-        # エンコーダ層を直列に適用
         for layer in self.encoder_layers:
             x = layer(x, pos_encoding, mask)
 
-        # デコーダ層を直列に適用
-        # 途中のデコーダ層の出力も保持
         hs = []
         h = torch.zeros_like(query_embed)
         for layer in self.decoder_layers:
@@ -385,7 +380,8 @@ class Transformer(nn.Module):
         hs = hs.permute(0, 2, 1, 3)
 
         return hs
-    
+
+
 class DETR(nn.Module):
     '''
     DETRモデル(ResNet18バックボーン)
@@ -406,17 +402,15 @@ class DETR(nn.Module):
 
         self.backbone = ResNet18()
 
-        # バックボーンネットワークの特徴マップのチャネル数を
-        # 減らすための畳み込み層
+        # バックボーンネットワークの特徴マップのチャネル数を減らすための畳み込み層
         self.proj = nn.Conv2d(512, dim_hidden, kernel_size=1)
 
         self.transformer = Transformer(
             dim_hidden, num_heads, num_encoder_layers,
             num_decoder_layers, dim_feedforward, dropout)
 
-        # 分類ヘッド
-        # 背景クラスのために実際の物体クラス数に1を追加
-        self.class_head = nn.Linear(dim_hidden, num_classes + 1)
+        # 分類ヘッド：背景クラスのために実際の物体クラス数に1を追加
+        self.class_head = nn.Linear(dim_hidden, num_classes+1)
 
         # 矩形ヘッド
         self.box_head = nn.Sequential(
@@ -440,47 +434,22 @@ class DETR(nn.Module):
     def forward(self, x: torch.Tensor, mask: torch.Tensor):
         # バックボーンネットワークから第5レイヤーの特徴マップを取得
         x = self.backbone(x)[-1]
-        print("="*50)
-        print("bacbone output")
-        print(x.shape)
 
         # Transformer処理用に特徴マップのチャネル数を削減
         x = self.proj(x)
-        print("="*50)
-        print("projection output")
-        print(x.shape)
 
         # 入力画像と同じ大きさを持つmaskを特徴マップの大きさにリサイズ
-        # interpolate関数はbool型には対応していないため、一旦xと
-        # 同じ型に変換
+        # interpolate関数はbool型には対応していないため、一旦xと同じ型に変換
         mask = mask.to(x.dtype)
-        mask = F.interpolate(
-            mask.unsqueeze(1), size=x.shape[2:])[:, 0]
+        mask = F.interpolate(mask.unsqueeze(1), size=x.shape[2:])[:, 0]
         mask = mask.to(torch.bool)
-        print("="*50)
-        print("resized mask")
-        print(mask.shape)
 
         pos_encoding = self.positional_encoding.generate(x, mask)
-        print("="*50)
-        print("positional encoding")
-        print(pos_encoding.shape)
 
-        hs = self.transformer(
-            x, pos_encoding, mask, self.query_embed.weight)
-        print("="*50)
-        print("transformer output")
-        print(hs.shape)
+        hs = self.transformer(x, pos_encoding, mask, self.query_embed.weight)
 
         preds_class = self.class_head(hs)
-        print("="*50)
-        print("preds_class")
-        print(preds_class.shape)
         preds_box = self.box_head(hs).sigmoid()
-        print("="*50)
-        print("preds_box")
-        print(preds_box.shape)
-
         return preds_class, preds_box
 
     '''

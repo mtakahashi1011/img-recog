@@ -12,6 +12,7 @@ def generate_subset(dataset: Dataset, ratio: float, random_seed: int=0):
     indices1, indices2 = indices[:size], indices[size:]
     return indices1, indices2
 
+
 def convert_to_xywh(boxes: torch.Tensor):
     wh = boxes[..., 2:] - boxes[..., :2]
     xy = boxes[..., :2] + wh / 2
@@ -19,12 +20,14 @@ def convert_to_xywh(boxes: torch.Tensor):
 
     return boxes
 
+
 def convert_to_xyxy(boxes: torch.Tensor):
     xymin = boxes[..., :2] - boxes[..., 2:] / 2
     xymax = boxes[..., 2:] + xymin
     boxes = torch.cat((xymin, xymax), dim=-1)
 
     return boxes
+
 
 def calc_iou(boxes1: torch.Tensor, boxes2: torch.Tensor):
     # 第1軸をunsqueezeし、ブロードキャストを利用することで
@@ -53,6 +56,7 @@ def calc_iou(boxes1: torch.Tensor, boxes2: torch.Tensor):
 
     return ious, union_areas
 
+
 '''
 boxes1: 矩形集合, [矩形数, 4 (xmin, ymin, xmax, ymax)]
 boxes2: 矩形集合, [矩形数, 4 (xmin, ymin, xmax, ymax)]
@@ -69,6 +73,7 @@ def calc_giou(boxes1: torch.Tensor, boxes2: torch.Tensor):
     areas = width_height.prod(dim=2)
 
     return ious - (areas - union) / areas
+
 
 '''
 preds_class         : 検出矩形のクラス,

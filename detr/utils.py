@@ -162,5 +162,3 @@ def get_pred_permutation_index(
                               for (pred_indices, _) in indices])
 
     return batch_indices, pred_indices
-
-

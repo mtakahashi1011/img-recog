@@ -6,19 +6,25 @@ from torch.utils.data import DataLoader
 from collections import deque
 from tqdm import tqdm
 from typing import Callable
+from pydantic import BaseModel
 
 from vit.dataloader import create_dataloader
 from vit.model import VisionTransformer
 
 
-class Config:
+class ModelConfig(BaseModel):
+    num_classes: int = 10
+    img_size :int = 32
+    patch_size: int = 4
+    dim_hidden: int = 512
+    num_heads: int = 8
+    dim_feedforward: int = 512
+    num_layers: int = 6    
+
+
+class TrainEvalConfig:
     def __init__(self):
         self.val_ratio = 0.2
-        self.patch_size = 4
-        self.dim_hidden = 512
-        self.num_heads = 8
-        self.dim_feedforward = 512
-        self.num_layers = 6
         self.num_epochs = 30
         self.lr = 1e-2
         self.moving_avg = 20
@@ -26,7 +32,6 @@ class Config:
         self.num_workers = 2
         self.device = "mps"
         self.num_samples = 200
-        self.num_classes = 10
 
 
 def evaluate(data_loader: DataLoader, model: nn.Module, loss_func: Callable):
@@ -46,15 +51,15 @@ def evaluate(data_loader: DataLoader, model: nn.Module, loss_func: Callable):
 
 
 def train_eval():
-    config = Config()
+    config = TrainEvalConfig()
     train_loader, val_loader, test_loader = create_dataloader(config)
     loss_func = F.cross_entropy
 
     val_loss_best = float('inf')
     model_best = None 
 
-    model = VisionTransformer(config.num_classes, 32, config.patch_size, config.dim_hidden, config.num_heads, 
-                              config.dim_feedforward, config.num_layers)
+    model_config = ModelConfig()
+    model = VisionTransformer(**model_config.model_dump())
     model.to(config.device)
 
     optimizer = optim.SGD(model.parameters(), lr=config.lr)

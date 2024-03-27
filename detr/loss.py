@@ -82,7 +82,7 @@ loss_weight_class   : コストを計算する際の分類コストの重み
 loss_weight_box_l1  : コストを計算する際の矩形のL1コストの重み
 loss_weight_box_giou: コストを計算する際の矩形のGIoUコストの重み
 '''
-def loss_func(preds_class: torch.Tensor, preds_box: torch.Tensor,
+def _loss_func(preds_class: torch.Tensor, preds_box: torch.Tensor,
               targets: dict, loss_weight_class: float=1.0,
               loss_weight_box_l1: float=5.0,
               loss_weight_box_giou: float=2.0,

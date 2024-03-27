@@ -76,7 +76,7 @@ class VisionTransformer(nn.Module):
         self.img_size = img_size 
         self.patch_size = patch_size
         num_patches = (img_size // patch_size) ** 2
-        dim_patch = 3*patch_size**2 # チャネル数xパッチサイズxパッチサイズ
+        dim_patch = 3*patch_size**2 
 
         self.patch_embed = nn.Linear(dim_patch, dim_hidden)
 
@@ -92,30 +92,28 @@ class VisionTransformer(nn.Module):
         self.linear = nn.Linear(dim_hidden, num_classes)
     
     def forward(self, x: torch.Tensor, return_embed: bool=False):
-        # Patch-flattening 
         bs, c, h, w = x.shape
         assert h == self.img_size and w == self.img_size
         x = x.view(bs, c, h//self.patch_size, self.patch_size, w//self.patch_size, self.patch_size)
-        x = x.permute(0, 2, 4, 1, 3, 5) # [バッチ数，パッチ数，パッチ数，チャンネル数，パッチサイズ，パッチサイズ]
-        
-        # Fully-connected Layer, Class Embedding and Positional Embedding
-        x = x.reshape(bs, (h//self.patch_size)*(w//self.patch_size), -1) # [バッチ数，総パッチ数，パッチ次元]
-        x = self.patch_embed(x) # [バッチ数，総パッチ数，特徴量次元]
-        # expand: Passing -1 as the size for a dimension means not changing the size of that dimension
-        class_token = self.class_token.expand(bs, -1, -1) # [バッチ数，1，特徴量次元]
+        x = x.permute(0, 2, 4, 1, 3, 5) # [B，H/P，W/P，C，P，P] 
+
+        x = x.reshape(bs, (h//self.patch_size)*(w//self.patch_size), -1) # [B，Np，C*P^2] Np=H*W/P^2
+        x = self.patch_embed(x) # [B，Np，D]
+
+        class_token = self.class_token.expand(bs, -1, -1) # [B，1，D]
         x = torch.cat((class_token, x), dim=1)
         x += self.pos_embed
 
+        # EncoderLayer
         for layer in self.layers:
             x = layer(x)
         
         # Feature extraction based on class embedding
-        x = x[:, 0] # [バッチ数，特徴量次元]
-        x = self.norm(x) # Layer Normalization
+        x = x[:, 0] # [B，D]
+        x = self.norm(x) 
         if return_embed:
             return x 
-        # Fully-connected Layer
-        x = self.linear(x) # [バッチ数，クラス数]
+        x = self.linear(x) # [B，M]
         return x
     
     def get_device(self):

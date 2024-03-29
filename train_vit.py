@@ -14,7 +14,7 @@ from vit.model import VisionTransformer
 
 class ModelConfig(BaseModel):
     num_classes: int = 10
-    img_size :int = 32
+    img_size: int = 32
     patch_size: int = 4
     dim_hidden: int = 512
     num_heads: int = 8
@@ -22,16 +22,15 @@ class ModelConfig(BaseModel):
     num_layers: int = 6    
 
 
-class TrainEvalConfig:
-    def __init__(self):
-        self.val_ratio = 0.2
-        self.num_epochs = 30
-        self.lr = 1e-2
-        self.moving_avg = 20
-        self.batch_size = 32
-        self.num_workers = 2
-        self.device = "mps"
-        self.num_samples = 200
+class TrainEvalConfig(BaseModel):
+    val_ratio: float = 0.2
+    num_epochs: int = 30
+    lr: float = 1e-2
+    moving_avg: int = 20
+    batch_size: int = 32
+    num_workers: int = 2
+    device: str = "mps"
+    num_samples: int = 200
 
 
 def evaluate(data_loader: DataLoader, model: nn.Module, loss_func: Callable):

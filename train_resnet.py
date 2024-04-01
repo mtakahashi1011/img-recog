@@ -6,23 +6,23 @@ from torch.utils.data import DataLoader
 from collections import deque 
 from tqdm import tqdm 
 from typing import Callable 
+from pydantic import BaseModel
 
 from resnet.dataloader import create_dataloader
 from resnet.model import ResNet18
 
 
-class Config:
-    def __init__(self):
-        self.val_ratio = 0.2
-        self.dim_input = 32*32*3
-        self.num_epochs = 30
-        self.lr = 1e-2
-        self.moving_avg = 20
-        self.batch_size = 32
-        self.num_workers = 2
-        self.device = 'mps'
-        self.num_samples = 200
-        self.num_classes = 10
+class Config(BaseModel):
+    val_ratio: float = 0.2
+    dim_input: int = 32*32*3
+    num_epochs: int = 30
+    lr: float = 1e-2
+    moving_avg: int = 20
+    batch_size: int = 32
+    num_workers: int = 2
+    device: str = 'mps'
+    num_samples: int = 200
+    num_classes: int = 10
 
 
 def evaluate(data_loader: DataLoader, model: nn.Module, loss_func: Callable):

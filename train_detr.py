@@ -14,21 +14,21 @@ from detr.loss import _loss_func
 URL = 'https://download.pytorch.org/models/resnet18-5c106cde.pth'
 
 class ModelConfig(BaseModel):
-        num_queries: int = 100                             # 物体クエリ埋め込みのクエリベクトル数
-        dim_hidden: int = 256                              # Transformer内の特徴量次元
-        num_heads: int = 8                                 # マルチヘッドアテンションのヘッド数
-        num_encoder_layers: int = 6                        # Transformerエンコーダの層数
-        num_decoder_layers: int = 6                        # Transformerデコーダの層数
-        dim_feedforward: int = 2048                        # Transformer内のFNNの中間特徴量次元
-        dropout: float = 0.1                               # Transformer内のドロップアウト率
-        num_classes: int = 2
+    num_queries: int = 100                             # 物体クエリ埋め込みのクエリベクトル数
+    dim_hidden: int = 256                              # Transformer内の特徴量次元
+    num_heads: int = 8                                 # マルチヘッドアテンションのヘッド数
+    num_encoder_layers: int = 6                        # Transformerエンコーダの層数
+    num_decoder_layers: int = 6                        # Transformerデコーダの層数
+    dim_feedforward: int = 2048                        # Transformer内のFNNの中間特徴量次元
+    dropout: float = 0.1                               # Transformer内のドロップアウト率
+    num_classes: int = 2
 
 
 class LossConfig(BaseModel):
-        loss_weight_class: int = 1                         # 分類損失の重み
-        loss_weight_box_l1: int = 5                        # 矩形回帰のL1誤差の重み
-        loss_weight_box_giou: int = 2                      # 矩形回帰のGIoU損失の重み
-        background_weight: float = 0.1                     # 背景クラスの重み        
+    loss_weight_class: int = 1                         # 分類損失の重み
+    loss_weight_box_l1: int = 5                        # 矩形回帰のL1誤差の重み
+    loss_weight_box_giou: int = 2                      # 矩形回帰のGIoU損失の重み
+    background_weight: float = 0.1                     # 背景クラスの重み        
 
 
 class ConfigTrainEval:

@@ -42,8 +42,7 @@ class CocoDetection(torchvision.datasets.CocoDetection):
         img_id = self.ids[idx]
 
         # 物体の集合を一つの矩形でアノテーションしているものを除外
-        target = [obj for obj in target
-                  if 'iscrowd' not in obj or obj['iscrowd'] == 0]
+        target = [obj for obj in target if 'iscrowd' not in obj or obj['iscrowd'] == 0]
 
         # 学習用に当該画像に映る物体のクラスIDと矩形を取得
         # クラスIDはコンストラクタで新規に割り当てたIDに変換
@@ -72,8 +71,7 @@ class CocoDetection(torchvision.datasets.CocoDetection):
             'classes': classes,
             'boxes': boxes,
             'size': torch.tensor((width, height), dtype=torch.int64),
-            'orig_size': torch.tensor((width, height),
-                                      dtype=torch.int64),
+            'orig_size': torch.tensor((width, height), dtype=torch.int64),
             'orig_img': torch.tensor(np.asarray(img))
         }
 

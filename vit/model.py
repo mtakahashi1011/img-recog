@@ -38,33 +38,26 @@ class SelfAttention(nn.Module):
         return out
     
 
-class FNN(nn.Module):
-    def __init__(self, dim_hidden: int, dim_feedforward: int):
-        super().__init__()
-        self.linear1 = nn.Linear(dim_hidden, dim_feedforward)
-        self.linear2 = nn.Linear(dim_feedforward, dim_hidden)
-        self.activation = nn.GELU()
-
-    def forward(self, x: torch.Tensor):
-        x = self.linear1(x)
-        x = self.activation(x)
-        x = self.linear2(x)
-        return x
-    
-
 class TransformerEncoderLayer(nn.Module):
-    def __init__(self, dim_hidden: int, num_heads: int, dim_feedforward: int):
+    def __init__(self, dim_hidden: int, num_heads: int, dim_feedforward: int, dropout: float = 0.1):
         super().__init__()
         self.attention = SelfAttention(dim_hidden, num_heads)
-        self.fnn = FNN(dim_hidden, dim_feedforward)
+        self.dropout1 = nn.Dropout(dropout)
         self.norm1 = nn.LayerNorm(dim_hidden)
+        self.fnn = nn.Sequential(
+            nn.Linear(dim_hidden, dim_feedforward),
+            nn.GELU(),
+            nn.Dropout(dropout),
+            nn.Linear(dim_feedforward, dim_hidden)
+        )
+        self.dropout2 = nn.Dropout(dropout)
         self.norm2 = nn.LayerNorm(dim_hidden)
     
     def forward(self, x: torch.Tensor):
-        x = self.norm1(x)
-        x = self.attention(x) + x
-        x = self.norm2(x)
-        x = self.fnn(x) + x 
+        attn_out = self.attention(self.norm1(x))
+        x = self.dropout1(attn_out) + x
+        fnn_out = self.fnn(self.norm2(x))
+        x = self.dropout2(fnn_out) + x 
         return x
     
 

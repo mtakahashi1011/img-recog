@@ -99,12 +99,9 @@ def hungarian_match(preds_class: torch.Tensor,
     preds_box = preds_box.flatten(0, 1)
 
     # 予測結果と同様に全てのサンプルの正解ラベルを一旦第0軸に並べる
-    targets_class = torch.cat([target['classes']
-                               for target in targets])
+    targets_class = torch.cat([target['classes'] for target in targets])
     # 正解矩形の値を正規化された画像上の座標に変換
-    targets_box = torch.cat(
-        [target['boxes'] / target['size'].repeat(2)
-         for target in targets])
+    targets_box = torch.cat([target['boxes'] / target['size'].repeat(2) for target in targets])
 
     # 分類のコストは正解クラスの予測確率にマイナスをかけたもの
     # 正解クラスの予測確率が高ければ高いほどコストが小さくなる
@@ -134,8 +131,7 @@ def hungarian_match(preds_class: torch.Tensor,
     sizes = [len(target['classes']) for target in targets]
 
     indices = []
-    # 第2軸を各サンプルの正解矩形数で分解し、バッチ軸でサンプルを
-    # 指定することで、各サンプルのコスト行列を取得
+    # 第2軸を各サンプルの正解矩形数で分解し、バッチ軸でサンプルを指定することで、各サンプルのコスト行列を取得
     for batch_id, c in enumerate(cost.split(sizes, dim=2)):
         c_batch = c[batch_id]
         # ハンガリアンアルゴリズムにより予測結果と正解のマッチング

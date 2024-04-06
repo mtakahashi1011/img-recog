@@ -184,8 +184,7 @@ class TransformerEncoderLayer(nn.Module):
         super().__init__()
 
         # 自己アテンションブロックの構成要素
-        self.self_attention = nn.MultiheadAttention(
-            dim_hidden, num_heads, dropout=dropout)
+        self.self_attn = nn.MultiheadAttention(dim_hidden, num_heads, dropout=dropout)
         self.dropout1 = nn.Dropout(dropout)
         self.norm1 = nn.LayerNorm(dim_hidden)
 
@@ -216,7 +215,7 @@ class TransformerEncoderLayer(nn.Module):
 
         # key_padding_maskにmaskを渡すことでマスクが真の値を持つ領域のキーは使われなくなり、特徴収集の対象から外れる
         # MutltiheadAttentionクラスは特徴収集結果とアテンションの値の2つの結果を返すが、特徴収集結果のみを使うので[0]とする
-        x2 = self.self_attention(q, k, x, key_padding_mask=mask)[0]
+        x2 = self.self_attn(q, k, x, key_padding_mask=mask)[0]
         x = x + self.dropout1(x2)
         x = self.norm1(x)
 
@@ -240,13 +239,12 @@ class TransformerDecoderLayer(nn.Module):
         super().__init__()
 
         # 物体特徴量の自己アテンションブロックの構成要素
-        self.self_attention = nn.MultiheadAttention(
+        self.self_attn = nn.MultiheadAttention(
             dim_hidden, num_heads, dropout=dropout)
         self.dropout1 = nn.Dropout(dropout)
         self.norm1 = nn.LayerNorm(dim_hidden)
 
-        # 物体特徴量と特徴マップの特徴量の
-        # 交差アテンションブロックの構成要素
+        # 物体特徴量と特徴マップの特徴量の交差アテンションブロックの構成要素
         self.cross_attention = nn.MultiheadAttention(
             dim_hidden, num_heads, dropout=dropout)
         self.dropout2 = nn.Dropout(dropout)
@@ -279,7 +277,7 @@ class TransformerDecoderLayer(nn.Module):
                 mask: torch.Tensor):
         # 物体クエリ埋め込みの自己アテンション
         q = k = h + query_embed
-        h2 = self.self_attention(q, k, h)[0]
+        h2 = self.self_attn(q, k, h)[0]
         h = h + self.dropout1(h2)
         h = self.norm1(h)
 
@@ -403,17 +401,17 @@ class DETR(nn.Module):
         self.backbone = ResNet18()
 
         # バックボーンネットワークの特徴マップのチャネル数を減らすための畳み込み層
-        self.proj = nn.Conv2d(512, dim_hidden, kernel_size=1)
+        self.input_proj = nn.Conv2d(512, dim_hidden, kernel_size=1)
 
         self.transformer = Transformer(
             dim_hidden, num_heads, num_encoder_layers,
             num_decoder_layers, dim_feedforward, dropout)
 
         # 分類ヘッド：背景クラスのために実際の物体クラス数に1を追加
-        self.class_head = nn.Linear(dim_hidden, num_classes+1)
+        self.class_embed = nn.Linear(dim_hidden, num_classes+1)
 
         # 矩形ヘッド
-        self.box_head = nn.Sequential(
+        self.bbox_embed = nn.Sequential(
             nn.Linear(dim_hidden, dim_hidden),
             nn.ReLU(inplace=True),
             nn.Linear(dim_hidden, dim_hidden),
@@ -436,7 +434,7 @@ class DETR(nn.Module):
         x = self.backbone(x)[-1]
 
         # Transformer処理用に特徴マップのチャネル数を削減
-        x = self.proj(x)
+        x = self.input_proj(x)
 
         # 入力画像と同じ大きさを持つmaskを特徴マップの大きさにリサイズ
         # interpolate関数はbool型には対応していないため、一旦xと同じ型に変換
@@ -448,8 +446,8 @@ class DETR(nn.Module):
 
         hs = self.transformer(x, pos_encoding, mask, self.query_embed.weight)
 
-        preds_class = self.class_head(hs)
-        preds_box = self.box_head(hs).sigmoid()
+        preds_class = self.class_embed(hs)
+        preds_box = self.bbox_embed(hs).sigmoid()
         return preds_class, preds_box
 
     '''

@@ -105,8 +105,7 @@ class RandomResize:
     max_side: 長辺の長さ
     target  : 目標となる短辺の長さ
     '''
-    def _get_target_size(self, min_side: int, max_side:int,
-                         target: int):
+    def _get_target_size(self, min_side: int, max_side:int, target: int):
         # アスペクト比を保持して短辺をtargetに合わせる
         max_side = int(max_side * target / min_side)
         min_side = target

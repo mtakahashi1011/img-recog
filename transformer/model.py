@@ -38,8 +38,8 @@ class TransformerEncoderLayer(nn.Module):
 
         self.normalize_before = normalize_before
 
-    def with_pos_embed(self, tensor, pos: Optional[Tensor]):
-        return tensor if pos is None else tensor + pos
+    def with_pos_embed(self, tensor, pos_encoding: Optional[Tensor]):
+        return tensor if pos_encoding is None else tensor + pos_encoding
 
     def forward_post(self, x, mask: Optional[Tensor]=None, pos_encoding: Optional[Tensor]=None):
         q = k = self.with_pos_embed(x, pos_encoding)
@@ -61,7 +61,7 @@ class TransformerEncoderLayer(nn.Module):
         x = x + self.dropout2(x2)
         return x
 
-    def forward(self, x, mask: Optional[Tensor] = None, pos_encoding: Optional[Tensor] = None):
+    def forward(self, x, mask: Optional[Tensor]=None, pos_encoding: Optional[Tensor]=None):
         if self.normalize_before:
             return self.forward_pre(x, mask, pos_encoding)
         return self.forward_post(x, mask, pos_encoding)

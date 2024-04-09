@@ -180,7 +180,9 @@ class TransformerDecoder(nn.Module):
             output = layer(output, x, mask=mask,
                            pos_encoding=pos_encoding, query_embed=query_embed)
             if self.return_intermediate:
-                intermediate.append(self.norm(output))
+                if self.norm is not None:
+                    intermediate.append(self.norm(output))
+                intermediate.append(output)
 
         if self.norm is not None:
             output = self.norm(output)
@@ -191,6 +193,7 @@ class TransformerDecoder(nn.Module):
         if self.return_intermediate:
             hs = torch.stack(intermediate)
             hs = hs.permute(0, 2, 1, 3)
+            return hs
         return output.unsqueeze(0)
     
 
@@ -233,5 +236,5 @@ class Transformer(nn.Module):
         x = self.encoder(x, mask=mask, pos_encoding=pos_encoding)
 
         h = torch.zeros_like(query_embed)
-        hs = self.decoder(h, x, mask=mask, pos_endcoding=pos_encoding, query_embed=query_embed)
+        hs = self.decoder(h, x, mask=mask, pos_encoding=pos_encoding, query_embed=query_embed)
         return hs

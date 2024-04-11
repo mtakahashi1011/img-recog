@@ -1,9 +1,9 @@
 from torch.utils.data import DataLoader
 from torch.utils.data.sampler import SubsetRandomSampler
 
-from detr.dataset import CocoDetection
-from detr.transform import train_transform, valid_transform, collate_func
-from detr.utils import generate_subset
+from detection.dataset import CocoDetection
+from detection.transform import train_transform, valid_transform, collate_func
+from detection.utils import generate_subset
 
 
 def create_dataloader(config):

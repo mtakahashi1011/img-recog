@@ -6,22 +6,13 @@ import torchvision
 
 
 class CocoDetection(torchvision.datasets.CocoDetection):
-    '''
-    物体検出用COCOデータセット読み込みクラス
-    img_directory: 画像ファイルが保存されてるディレクトリへのパス
-    anno_file    : アノテーションファイルのパス
-    transform    : データ拡張と整形を行うクラスインスタンス
-    '''
     def __init__(self, img_directory: str, anno_file: str,
                  transform: Callable=None):
         super().__init__(img_directory, anno_file)
 
         self.transform = transform
 
-        # カテゴリーIDに欠番があるため、それを埋めてクラスIDを割り当て
         self.classes = []
-        # 元々のクラスIDと新しく割り当てたクラスIDを相互に変換する
-        # ためのマッピングを保持
         self.coco_to_pred = {}
         self.pred_to_coco = {}
         for i, category_id in enumerate(
@@ -30,10 +21,6 @@ class CocoDetection(torchvision.datasets.CocoDetection):
             self.coco_to_pred[category_id] = i
             self.pred_to_coco[i] = category_id
 
-    '''
-    データ取得関数
-    idx: サンプルを指すインデックス
-    '''
     def __getitem__(self, idx: int):
         img, target = super().__getitem__(idx)
         img_id = self.ids[idx]
@@ -68,9 +55,5 @@ class CocoDetection(torchvision.datasets.CocoDetection):
 
         return img, target
 
-    '''
-    モデルで予測されたクラスIDからCOCOのクラスIDに変換する関数
-    label: 予測されたクラスID
-    '''
     def to_coco_label(self, label: int):
         return self.pred_to_coco[label]

@@ -3,7 +3,7 @@ from typing import Optional, List
 
 import torch
 import torch.nn.functional as F
-from torch import nn, Tensor
+from torch import nn
 
 
 def _get_activation_fn(activation):
@@ -38,10 +38,10 @@ class TransformerEncoderLayer(nn.Module):
 
         self.normalize_before = normalize_before
 
-    def with_pos_embed(self, tensor, pos_encoding: Optional[Tensor]):
+    def with_pos_embed(self, tensor, pos_encoding: Optional[torch.Tensor]):
         return tensor if pos_encoding is None else tensor + pos_encoding
 
-    def forward_post(self, x, mask: Optional[Tensor]=None, pos_encoding: Optional[Tensor]=None):
+    def forward_post(self, x, mask: Optional[torch.Tensor]=None, pos_encoding: Optional[torch.Tensor]=None):
         q = k = self.with_pos_embed(x, pos_encoding)
         x2 = self.self_attn(q, k, value=x, key_padding_mask=mask)[0]
         x = x + self.dropout1(x2)
@@ -51,7 +51,7 @@ class TransformerEncoderLayer(nn.Module):
         x = self.norm2(x)
         return x
 
-    def forward_pre(self, x, mask: Optional[Tensor]=None, pos_encoding: Optional[Tensor]=None):
+    def forward_pre(self, x, mask: Optional[torch.Tensor]=None, pos_encoding: Optional[torch.Tensor]=None):
         x2 = self.norm1(x)
         q = k = self.with_pos_embed(x2, pos_encoding)
         x2 = self.self_attn(q, k, value=x2, key_padding_mask=mask)[0]
@@ -61,7 +61,7 @@ class TransformerEncoderLayer(nn.Module):
         x = x + self.dropout2(x2)
         return x
 
-    def forward(self, x, mask: Optional[Tensor]=None, pos_encoding: Optional[Tensor]=None):
+    def forward(self, x, mask: Optional[torch.Tensor]=None, pos_encoding: Optional[torch.Tensor]=None):
         if self.normalize_before:
             return self.forward_pre(x, mask, pos_encoding)
         return self.forward_post(x, mask, pos_encoding)
@@ -92,13 +92,13 @@ class TransformerDecoderLayer(nn.Module):
 
         self.normalize_before = normalize_before
 
-    def with_pos_embed(self, tensor, pos: Optional[Tensor]):
+    def with_pos_embed(self, tensor, pos: Optional[torch.Tensor]):
         return tensor if pos is None else tensor + pos
 
     def forward_post(self, h, x,
-                     mask: Optional[Tensor]=None,
-                     pos_encoding: Optional[Tensor]=None,
-                     query_embed: Optional[Tensor]=None):
+                     mask: Optional[torch.Tensor]=None,
+                     pos_encoding: Optional[torch.Tensor]=None,
+                     query_embed: Optional[torch.Tensor]=None):
         q = k = self.with_pos_embed(h, query_embed)
         tgt2 = self.self_attn(q, k, h)[0]
         h = h + self.dropout1(tgt2)
@@ -117,9 +117,9 @@ class TransformerDecoderLayer(nn.Module):
         return h
 
     def forward_pre(self, h, x,
-                    mask: Optional[Tensor]=None,
-                    pos_encoding: Optional[Tensor]=None,
-                    query_embed: Optional[Tensor]=None):
+                    mask: Optional[torch.Tensor]=None,
+                    pos_encoding: Optional[torch.Tensor]=None,
+                    query_embed: Optional[torch.Tensor]=None):
         h2 = self.norm1(h)
         q = k = self.with_pos_embed(h2, query_embed)
         h2 = self.self_attn(q, k, h2)[0]
@@ -138,9 +138,9 @@ class TransformerDecoderLayer(nn.Module):
         return h
 
     def forward(self, h, x,
-                mask: Optional[Tensor]=None,
-                pos_encoding: Optional[Tensor]=None,
-                query_embed: Optional[Tensor]=None):
+                mask: Optional[torch.Tensor]=None,
+                pos_encoding: Optional[torch.Tensor]=None,
+                query_embed: Optional[torch.Tensor]=None):
         if self.normalize_before:
             return self.forward_pre(h, x, mask, pos_encoding, query_embed)
         return self.forward_post(h, x, mask, pos_encoding, query_embed)
@@ -153,7 +153,7 @@ class TransformerEncoder(nn.Module):
         self.num_encoder_layers = num_encoder_layers
         self.norm = norm
 
-    def forward(self, x, mask: Optional[Tensor]=None, pos_encoding: Optional[Tensor]=None):
+    def forward(self, x, mask: Optional[torch.Tensor]=None, pos_encoding: Optional[torch.Tensor]=None):
         output = x
         for layer in self.layers:
             output = layer(output, mask=mask, pos_encoding=pos_encoding)
@@ -171,9 +171,9 @@ class TransformerDecoder(nn.Module):
         self.return_intermediate = return_intermediate
 
     def forward(self, h, x,
-                mask: Optional[Tensor]=None,
-                pos_encoding: Optional[Tensor]=None,
-                query_embed: Optional[Tensor]=None):
+                mask: Optional[torch.Tensor]=None,
+                pos_encoding: Optional[torch.Tensor]=None,
+                query_embed: Optional[torch.Tensor]=None):
         output = h
         intermediate = []
         for layer in self.layers:

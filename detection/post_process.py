@@ -1,5 +1,5 @@
 import torch
-from detr.utils import convert_to_xyxy
+from detection.utils import convert_to_xyxy
 
 
 '''

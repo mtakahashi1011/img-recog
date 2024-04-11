@@ -39,7 +39,7 @@ class SelfAttention(nn.Module):
     
 
 class TransformerEncoderLayer(nn.Module):
-    def __init__(self, dim_hidden: int, num_heads: int, dim_feedforward: int, dropout: float = 0.1):
+    def __init__(self, dim_hidden: int, num_heads: int, dim_feedforward: int, dropout: float=0.1):
         super().__init__()
         self.attention = SelfAttention(dim_hidden, num_heads)
         self.dropout1 = nn.Dropout(dropout)

@@ -6,12 +6,6 @@ from torchvision.ops.misc import FrozenBatchNorm2d
 
 
 class BasicBlock(nn.Module):
-    '''
-    ResNet18における残差ブロック
-    in_channels : 入力チャネル数
-    out_channels: 出力チャネル数
-    stride      : 畳み込み層のストライド
-    '''
     def __init__(self, in_channels: int, out_channels: int,
                  stride: int=1):
         super().__init__()
@@ -62,19 +56,14 @@ class BasicBlock(nn.Module):
 
 
 class ResNet18(nn.Module):
-    '''
-    ResNet18モデル
-    '''
     def __init__(self):
         super().__init__()
 
-        self.conv1 = nn.Conv2d(3, 64, kernel_size=7, stride=2,
-                               padding=3, bias=False)
+        self.conv1 = nn.Conv2d(3, 64, kernel_size=7, stride=2, padding=3, bias=False)
         self.bn1 = FrozenBatchNorm2d(64)
         self.relu = nn.ReLU(inplace=True)
 
-        self.max_pool = nn.MaxPool2d(kernel_size=3,
-                                     stride=2, padding=1)
+        self.max_pool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
 
         self.layer1 = nn.Sequential(
             BasicBlock(64, 64),
@@ -112,11 +101,6 @@ class ResNet18(nn.Module):
     
 
 class PositionalEncoding:
-    '''
-    位置エンコーディング生成クラス
-    eps        : 0で割るのを防ぐための小さい定数
-    temperature: 温度定数
-    '''
     def __init__(self, eps: float=1e-6, temperature: int=10000):
         self.eps = eps
         self.temperature = temperature

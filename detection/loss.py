@@ -2,7 +2,7 @@ from typing import List, Tuple
 import torch
 import torch.nn.functional as F
 
-from detr.utils import get_pred_permutation_index, convert_to_xywh, convert_to_xyxy, calc_giou, hungarian_match
+from detection.utils import get_pred_permutation_index, convert_to_xywh, convert_to_xyxy, calc_giou, hungarian_match
 
 
 '''

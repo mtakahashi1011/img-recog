@@ -35,6 +35,7 @@ class BasicBlock(nn.Module):
         out = self.relu(out)
         return out
     
+
 class ResNet18(nn.Module):
     def __init__(self):
         super().__init__()
@@ -73,6 +74,7 @@ class ResNet18(nn.Module):
 
         return c3, c4, c5
     
+
 class FeaturePyramidNetwork(nn.Module):
     def __init__(self, num_features: int=256):
         super().__init__()
@@ -104,6 +106,7 @@ class FeaturePyramidNetwork(nn.Module):
         p3 = self.p3_2(p3)
         return p3, p4, p5, p6, p7
     
+
 class DetectionHead(nn.Module):
     def __init__(self, num_channels_per_anchor: int, num_anchors: int=9, num_features: int=256):
         super().__init__()
@@ -127,6 +130,7 @@ class DetectionHead(nn.Module):
         x = x.reshape(bs, w*h*self.num_anchors, -1)
         return x
     
+
 class AnchorGenerator:
     def __init__(self, levels: int):
         ratios = torch.tensor([0.5, 1.0, 2.0])
@@ -182,6 +186,7 @@ class AnchorGenerator:
         anchors = torch.cat(anchors)
         return anchors 
     
+    
 class RetinaNet(nn.Module):
     def __init__(self, num_classes: int):
         super().__init__()
@@ -218,34 +223,14 @@ class RetinaNet(nn.Module):
 
     def forward(self, x: torch.Tensor):
         cs = self.backbone(x)
-        print("="*50)
-        print("cs shape")
-        for c in cs:
-            print(c.shape)
         ps = self.fpn(*cs)
-        print("="*50)
-        print("ps shape")
-        for p in ps:
-            print(p.shape)
-
+ 
         preds_class = torch.cat(list(map(self.class_head, ps)), dim=1)
-        print("="*50)
-        print("preds_class shape")
-        print(preds_class.shape)
         preds_box = torch.cat(list(map(self.box_head, ps)), dim=1)
-        print("="*50)
-        print("preds_box shape")
-        print(preds_box.shape)
 
         feature_sizes = [p.shape[2:] for p in ps]
-        print("="*50)
-        print("feature_sizes")
-        print(feature_sizes)
         anchors = self.anchor_generator.generate(feature_sizes)
         anchors = anchors.to(x.device)
-        print("="*50)
-        print("anchors shape")
-        print(anchors.shape)
         return preds_class, preds_box, anchors 
     
     def get_device(self):

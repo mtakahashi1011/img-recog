@@ -113,8 +113,10 @@ class DetectionHead(nn.Module):
         self.num_anchors = num_anchors
 
         self.conv_blocks = nn.ModuleList([
-            nn.Sequential(nn.Conv2d(num_features, num_features, kernel_size=3, padding=1),
-                          nn.ReLU(inplace=True))
+            nn.Sequential(
+                nn.Conv2d(num_features, num_features, kernel_size=3, padding=1),
+                nn.ReLU(inplace=True)
+            )
             for _ in range(4)
         ])
 
@@ -186,7 +188,7 @@ class AnchorGenerator:
         anchors = torch.cat(anchors)
         return anchors 
     
-    
+
 class RetinaNet(nn.Module):
     def __init__(self, num_classes: int):
         super().__init__()

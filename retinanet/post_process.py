@@ -17,27 +17,21 @@ conf_threshold: 信頼度の閾値
 nms_threshold : NMSのIoU閾値
 '''
 @torch.no_grad()
-def post_process(preds_class: torch.Tensor, preds_box: torch.Tensor,
-                 anchors: torch.Tensor, targets: dict,
-                 conf_threshold: float=0.05,
-                 nms_threshold: float=0.5):
-    batch_size = preds_class.shape[0]
+def post_process(
+        preds_class: torch.Tensor, 
+        preds_box: torch.Tensor,
+        anchors: torch.Tensor, targets: dict,
+        conf_threshold: float=0.05,
+        nms_threshold: float=0.5
+    ) -> tuple[list[torch.Tensor], list[torch.Tensor], list[torch.Tensor]]:
 
+    # アンカーボックスと予測誤差の結合
     anchors_xywh = convert_to_xywh(anchors)
-
-    # 中心座標の予測をスケール不変にするため、
-    # 予測値をアンカーボックスの大きさでスケールする
-    preds_box[:, :, :2] = anchors_xywh[:, :2] + \
-        preds_box[:, :, :2] * anchors_xywh[:, 2:]
-    preds_box[:, :, 2:] = preds_box[:, :, 2:].exp() * \
-        anchors_xywh[:, 2:]
-
+    preds_box[:, :, :2] = anchors_xywh[:, :2] + preds_box[:, :, :2] * anchors_xywh[:, 2:]
+    preds_box[:, :, 2:] = preds_box[:, :, 2:].exp() * anchors_xywh[:, 2:]
     preds_box = convert_to_xyxy(preds_box)
 
     # 物体クラスの予測確率をシグモイド関数で計算
-    # RetinaNetでは背景クラスは存在せず、
-    # 背景を表す場合は全ての物体クラスの予測確率が低くなるように
-    # 実装されている
     preds_class = preds_class.sigmoid()
 
     # forループで画像毎に処理を実施
@@ -47,15 +41,11 @@ def post_process(preds_class: torch.Tensor, preds_box: torch.Tensor,
     for img_preds_class, img_preds_box, img_targets in zip(
             preds_class, preds_box, targets):
         # 検出矩形が画像内に収まるように座標をクリップ
-        img_preds_box[:, ::2] = img_preds_box[:, ::2].clamp(
-            min=0, max=img_targets['size'][0])
-        img_preds_box[:, 1::2] = img_preds_box[:, 1::2].clamp(
-            min=0, max=img_targets['size'][1])
+        img_preds_box[:, ::2] = img_preds_box[:, ::2].clamp(min=0, max=img_targets['size'][0])
+        img_preds_box[:, 1::2] = img_preds_box[:, 1::2].clamp(min=0, max=img_targets['size'][1])
 
-        # 検出矩形は入力画像の大きさに合わせたものになっているので、
-        # 元々の画像に合わせて検出矩形をスケール
-        img_preds_box *= img_targets['orig_size'][0] / \
-            img_targets['size'][0]
+        # 検出矩形は入力画像の大きさに合わせたものになっているので、元々の画像に合わせて検出矩形をスケール
+        img_preds_box *= img_targets['orig_size'][0] / img_targets['size'][0]
 
         # 物体クラスのスコアとクラスIDを取得
         img_preds_score, img_preds_label = img_preds_class.max(dim=1)
@@ -67,8 +57,7 @@ def post_process(preds_class: torch.Tensor, preds_box: torch.Tensor,
         img_preds_box = img_preds_box[keep]
 
         # クラス毎にNMSを適用
-        keep_indices = batched_nms(img_preds_box, img_preds_score,
-                                   img_preds_label, nms_threshold)
+        keep_indices = batched_nms(img_preds_box, img_preds_score, img_preds_label, nms_threshold)
 
         scores.append(img_preds_score[keep_indices])
         labels.append(img_preds_label[keep_indices])
